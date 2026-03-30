@@ -1,0 +1,111 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-08-01/managementGroupDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "description": "Defender for Storage のリソース単位有効化を監査する Azure Policy をデプロイします。"
+  },
+  "parameters": {
+    "policyEffect": {
+      "type": "string",
+      "defaultValue": "AuditIfNotExists",
+      "allowedValues": [
+        "AuditIfNotExists",
+        "Disabled"
+      ],
+      "metadata": {
+        "description": "ポリシーの Effect。AuditIfNotExists（監査）または Disabled（無効）。"
+      }
+    },
+    "assignPolicy": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "true にすると、ポリシー定義の作成と同時に管理グループへの割り当ても行います。"
+      }
+    }
+  },
+  "variables": {
+    "policyDefinitionName": "custom-defender-for-storage-resource-audit",
+    "policyAssignmentName": "dfs-resource-audit"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Authorization/policyDefinitions",
+      "apiVersion": "2023-04-01",
+      "name": "[variables('policyDefinitionName')]",
+      "properties": {
+        "displayName": "[Custom] Defender for Storage - Resource Level Audit",
+        "policyType": "Custom",
+        "mode": "All",
+        "description": "各 Storage Account に対して、Defender for Storage がリソース単位（isEnabled: true）で有効化されていることを監査します。",
+        "metadata": {
+          "version": "1.0.0",
+          "category": "Security Center"
+        },
+        "parameters": {
+          "effect": {
+            "type": "String",
+            "metadata": {
+              "displayName": "Effect",
+              "description": "AuditIfNotExists または Disabled"
+            },
+            "allowedValues": [
+              "AuditIfNotExists",
+              "Disabled"
+            ],
+            "defaultValue": "AuditIfNotExists"
+          }
+        },
+        "policyRule": {
+          "if": {
+            "field": "type",
+            "equals": "Microsoft.Storage/storageAccounts"
+          },
+          "then": {
+            "effect": "[parameters('effect')]",
+            "details": {
+              "type": "Microsoft.Security/defenderForStorageSettings",
+              "name": "current",
+              "evaluationDelay": "AfterProvisioning",
+              "existenceCondition": {
+                "field": "Microsoft.Security/defenderForStorageSettings/isEnabled",
+                "equals": "true"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "condition": "[parameters('assignPolicy')]",
+      "type": "Microsoft.Authorization/policyAssignments",
+      "apiVersion": "2023-04-01",
+      "name": "[variables('policyAssignmentName')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName'))]"
+      ],
+      "properties": {
+        "displayName": "[Custom] Defender for Storage - Resource Level Audit",
+        "description": "各 Storage Account に対して、Defender for Storage がリソース単位（isEnabled: true）で有効化されていることを監査します。",
+        "policyDefinitionId": "[extensionResourceId(managementGroup().id, 'Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName'))]",
+        "enforcementMode": "Default",
+        "parameters": {
+          "effect": {
+            "value": "[parameters('policyEffect')]"
+          }
+        }
+      }
+    }
+  ],
+  "outputs": {
+    "policyDefinitionId": {
+      "type": "string",
+      "value": "[extensionResourceId(managementGroup().id, 'Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName'))]"
+    },
+    "policyAssignmentId": {
+      "condition": "[parameters('assignPolicy')]",
+      "type": "string",
+      "value": "[extensionResourceId(managementGroup().id, 'Microsoft.Authorization/policyAssignments', variables('policyAssignmentName'))]"
+    }
+  }
+}

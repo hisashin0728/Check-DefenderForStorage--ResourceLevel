@@ -2,6 +2,10 @@
 
 Azure Policy カスタム定義 — 各 Storage アカウントに対してリソース単位の **Defender for Storage** が有効化されていることを監査します。
 
+[![Deploy to Azure](https://aka.ms/deploytoazure)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2F%3Cyour-org%3E%2F%3Cyour-repo%3E%2Fmain%2Fazuredeploy.json)
+
+> **注:** 上記ボタンを使用するには、このリポジトリを GitHub に公開し、URL の `<your-org>` / `<your-repo>` を実際の値に置き換えてください。
+
 ---
 
 ## 概要
@@ -44,6 +48,47 @@ Storage アカウントが存在する
 ---
 
 ## デプロイ方法
+
+### ARM テンプレートによるデプロイ（推奨）
+
+#### Deploy to Azure ボタン
+
+GitHub にリポジトリを公開後、以下の URL の `<your-org>` / `<your-repo>` を置き換えてブラウザで開くと、Azure Portal から直接デプロイできます。
+
+```
+https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2F<your-org>%2F<your-repo>%2Fmain%2Fazuredeploy.json
+```
+
+#### Azure CLI によるデプロイ
+
+```powershell
+$mgId = "<Tenant Root Group ID>"  # 例: 464ded72-1950-4150-8811-b47ceb718344
+
+az deployment mg create `
+  --name "deploy-defender-storage-policy" `
+  --management-group-id $mgId `
+  --location japaneast `
+  --template-file azuredeploy.json `
+  --parameters azuredeploy.parameters.json
+```
+
+#### パラメーター
+
+| パラメーター | 型 | デフォルト | 説明 |
+|---|---|---|---|
+| `policyEffect` | string | `AuditIfNotExists` | ポリシーの Effect（`AuditIfNotExists` / `Disabled`） |
+| `assignPolicy` | bool | `true` | `true` にすると、定義作成と同時に管理グループへの割り当ても実施 |
+
+#### ファイル構成
+
+```
+azuredeploy.json              # ARM テンプレート本体
+azuredeploy.parameters.json   # パラメーターファイル
+```
+
+---
+
+### Azure CLI（JSON 直接指定）によるデプロイ
 
 ### 前提条件
 
@@ -223,7 +268,9 @@ NonCompliant                     NonCompliant         ❌ どちらも未設定 
 
 ```
 .
-└── combined-policy.json   # Azure Policy 定義ファイル
+├── azuredeploy.json              # ARM テンプレート（ポリシー定義 + 割り当て）
+├── azuredeploy.parameters.json   # ARM テンプレート パラメーターファイル
+└── combined-policy.json          # Azure Policy 定義ファイル（CLI デプロイ用）
 ```
 
 ---
