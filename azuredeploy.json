@@ -34,7 +34,7 @@
       "apiVersion": "2023-04-01",
       "name": "[variables('policyDefinitionName')]",
       "properties": {
-        "displayName": "[Custom] Defender for Storage - Resource Level Audit",
+        "displayName": "[[Custom] Defender for Storage - Resource Level Audit",
         "policyType": "Custom",
         "mode": "All",
         "description": "各 Storage Account に対して、Defender for Storage がリソース単位（isEnabled: true）で有効化されていることを監査します。",
@@ -85,7 +85,7 @@
         "[resourceId('Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName'))]"
       ],
       "properties": {
-        "displayName": "[Custom] Defender for Storage - Resource Level Audit",
+        "displayName": "[[Custom] Defender for Storage - Resource Level Audit",
         "description": "各 Storage Account に対して、Defender for Storage がリソース単位（isEnabled: true）で有効化されていることを監査します。",
         "policyDefinitionId": "[extensionResourceId(managementGroup().id, 'Microsoft.Authorization/policyDefinitions', variables('policyDefinitionName'))]",
         "enforcementMode": "Default",
