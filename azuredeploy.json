@@ -62,7 +62,7 @@
             "equals": "Microsoft.Storage/storageAccounts"
           },
           "then": {
-            "effect": "[parameters('effect')]",
+            "effect": "[[parameters('effect')]",
             "details": {
               "type": "Microsoft.Security/defenderForStorageSettings",
               "name": "current",
